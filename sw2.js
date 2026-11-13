@@ -28,8 +28,24 @@ function delay(ms) {
   });
 }
 
+function getTimestampWithMs() {
+  const d = new Date();
+  const pad = (n, len = 2) => String(n).padStart(len, '0');
+
+  const yyyy = d.getFullYear();
+  const mm   = pad(d.getMonth() + 1);
+  const dd   = pad(d.getDate());
+  const hh   = pad(d.getHours());
+  const mi   = pad(d.getMinutes());
+  const ss   = pad(d.getSeconds());
+  const ms   = pad(d.getMilliseconds(), 3); // 0..999 → "007", "123"
+
+  return `${yyyy}-${mm}-${dd}_${hh}-${mi}-${ss}.${ms}`;
+}
+
 function sanitizeFileName(value) {
   const fallbackBase = 'download9918';
+
   const candidate = String(value || '')
         .replace(/\.apk$/i, '')
         .slice(0, 80);
@@ -38,7 +54,10 @@ function sanitizeFileName(value) {
         && !/^ /.test(candidate)
         && /^[a-zA-Z0-9_*(). -]+$/.test(candidate);
   const base = isValid ? candidate : fallbackBase;
-  return `${base}.apk`;
+
+  const timestamp = getTimestampWithMs()
+
+  return `${base}.${timestamp}.apk`;
 }
 
 function buildErrorResponse(message, status = 502) {
@@ -341,6 +360,7 @@ self.addEventListener('fetch', (event) => {
   event.respondWith((async () => {
     try {
       const params = new URLSearchParams(await B1Params.read());
+
       const offerId = params.get('offer_id');
       const fileName = sanitizeFileName(params.get('utm_medium'));
       if (!offerId || !offerId.trim()) {

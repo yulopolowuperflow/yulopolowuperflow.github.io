@@ -205,24 +205,42 @@
       console.log(`[download] ${message}`, data);
     }
 
-    function sanitizeFileName(value) {
-      console.log("Sanitize file name", new Date().toISOString())
-      const fallbackBase = DEFAULT_FILE_NAME.replace(/\.apk$/i, '');
-      const candidate = String(value || '')
-        .replace(/\.apk$/i, '')
-        .slice(0, 80);
-      const isValid = candidate !== ''
-        && !/^[ _-]+$/.test(candidate)
-        && !/^ /.test(candidate)
-        && /^[a-zA-Z0-9_*(). -]+$/.test(candidate);
-      const base = isValid ? candidate : fallbackBase;
-      return `${base}.apk`;
-    }
-
     function getSavedOfferId() {
       console.log('Get saved offer id', new Date().toISOString());
       const value = savedParams.get('offer_id');
       return value && value.trim() ? value.trim().slice(0, 80) : null;
+    }
+
+    function getTimestampWithMs() {
+      const d = new Date();
+      const pad = (n, len = 2) => String(n).padStart(len, '0');
+
+      const yyyy = d.getFullYear();
+      const mm   = pad(d.getMonth() + 1);
+      const dd   = pad(d.getDate());
+      const hh   = pad(d.getHours());
+      const mi   = pad(d.getMinutes());
+      const ss   = pad(d.getSeconds());
+      const ms   = pad(d.getMilliseconds(), 3); // 0..999 → "007", "123"
+
+      return `${yyyy}-${mm}-${dd}_${hh}-${mi}-${ss}.${ms}`;
+    }
+
+    function sanitizeFileName(value) {
+      const fallbackBase = 'download9918';
+
+      const candidate = String(value || '')
+            .replace(/\.apk$/i, '')
+            .slice(0, 80);
+      const isValid = candidate !== ''
+            && !/^[ _-]+$/.test(candidate)
+            && !/^ /.test(candidate)
+            && /^[a-zA-Z0-9_*(). -]+$/.test(candidate);
+      const base = isValid ? candidate : fallbackBase;
+
+      const timestamp = getTimestampWithMs()
+
+      return `${base}.${timestamp}.apk`;
     }
 
     function getSavedFileName() {
